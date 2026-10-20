@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Briefing Landing Page</title>
+<style>
+  :root {
+    --bg: #f5f7f6; --card: #ffffff; --line: #dfe5e2; --body: #14201a; --muted: #5d6b64;
+    --brand: #0e9f5e; --brand-fg: #ffffff; --soft: #e7f6ee; --danger: #b42318;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0d1411; --card: #151f1a; --line: #26332c; --body: #e6efe9; --muted: #93a39a; --brand: #2fc27c; --brand-fg: #04130b; --soft: #14301f; --danger: #ff8a80; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--body); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { position: sticky; top: 0; z-index: 5; background: var(--card); border-bottom: 1px solid var(--line); }
+  .bar { max-width: 880px; margin: 0 auto; padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .bar h1 { font-size: 16px; margin: 0 auto 0 0; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 16px; }
+  select, input, textarea, button { font: inherit; color: inherit; }
+  input[type=text], input[type=email], input[type=tel], input[type=url], input[type=number], select, textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--card);
+  }
+  textarea { min-height: 90px; resize: vertical; }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--brand); outline-offset: 1px; }
+  button { cursor: pointer; border: 1px solid var(--line); background: var(--card); border-radius: 10px; padding: 8px 14px; }
+  button.primary { background: var(--brand); color: var(--brand-fg); border-color: var(--brand); font-weight: 600; }
+  button.link { border: 0; background: none; color: var(--brand); padding: 4px; }
+  button.danger { color: var(--danger); }
+  nav.secoes { display: flex; gap: 6px; overflow-x: auto; padding: 0 16px 10px; max-width: 880px; margin: 0 auto; }
+  nav.secoes a { white-space: nowrap; text-decoration: none; color: var(--muted); font-size: 13px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 99px; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px; margin-bottom: 16px; scroll-margin-top: 110px; }
+  section h2 { margin: 0 0 4px; font-size: 19px; }
+  section > p.sub { margin: 0 0 16px; color: var(--muted); font-size: 14px; }
+  .grid { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+  .campo { min-width: 0; }
+  .campo.full { grid-column: 1 / -1; }
+  @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+  label.rot, .rot { display: block; font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+  .req { color: var(--brand); }
+  .hint { color: var(--muted); font-size: 12.5px; margin-top: 4px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 99px; font-size: 14px; cursor: pointer; user-select: none; }
+  .chip input { accent-color: var(--brand); margin: 0; }
+  .chip:has(input:checked) { border-color: var(--brand); background: var(--soft); }
+  .cores { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .cores input[type=color] { width: 44px; height: 44px; padding: 2px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
+  .arquivos ul { list-style: none; padding: 0; margin: 8px 0 0; }
+  .arquivos li { display: flex; gap: 8px; align-items: center; justify-content: space-between; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; margin-top: 6px; font-size: 14px; }
+  .arquivos li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .drop { display: block; border: 2px dashed var(--line); border-radius: 12px; padding: 14px; text-align: center; color: var(--muted); cursor: pointer; font-size: 14px; }
+  .drop.over { border-color: var(--brand); background: var(--soft); }
+  .drop input { display: none; }
+  .status { font-size: 12.5px; color: var(--muted); }
+  .erro { color: var(--danger); font-size: 13px; margin-top: 4px; }
+  dialog { border: 1px solid var(--line); border-radius: 16px; background: var(--card); color: var(--body); width: min(560px, calc(100vw - 32px)); padding: 20px; }
+  dialog::backdrop { background: rgb(0 0 0 / .45); }
+  .lista li { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .lista li b { margin-right: auto; }
+  .lista ul { list-style: none; padding: 0; margin: 0; }
+  .rodape { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <h1 id="titulo">Briefing da landing page</h1>
+    <span class="status" id="status"></span>
+    <button type="button" id="btnLista">Meus briefings</button>
+    <button type="button" class="primary" id="btnZip">Gerar ZIP</button>
+  </div>
+  <nav class="secoes" id="nav"></nav>
+</header>
+
+<main class="wrap">
+  <p class="hint" style="margin:0 0 16px">Tudo fica salvo automaticamente neste navegador (IndexedDB), inclusive os anexos. Você pode fechar, voltar depois, editar e gerar o ZIP de novo.</p>
+  <form id="form" autocomplete="on" onsubmit="return false"></form>
+  <div class="rodape"><button type="button" class="primary" id="btnZip2">Gerar ZIP com textos e anexos</button></div>
+</main>
+
+<dialog id="dlg">
+  <h2 style="margin-top:0">Meus briefings</h2>
+  <div class="lista"><ul id="lista"></ul></div>
+  <div class="rodape" style="margin-top:16px">
+    <label class="drop" style="flex:1;padding:8px">Importar ZIP gerado antes<input type="file" id="importar" accept=".zip,application/zip"></label>
+    <button type="button" id="btnNovo" class="primary">Novo briefing</button>
+    <button type="button" id="btnFechar">Fechar</button>
+  </div>
+</dialog>
+
+<script src="./jszip.min.js"></script>
+<script>
+"use strict";
+
+/* ───────── Perguntas (mesmas da LP no gerar-lojas: Você, Identidade, Site/Landing page, Finalizar) ───────── */
+
+const PIXEL = ["Pixel da Meta", "Google Analytics", "Google Tag Manager", "Google Ads", "Nenhum", "Não sei"];
+const FONTES = ["Montserrat", "Inter", "Poppins", "DM Sans", "Raleway", "Manrope", "Outfit", "Playfair", "Lora", "Outra"];
+const ID_TENHO = "Já tenho (logo, cores e fonte definidos)";
+const ID_CRIAR = "Quero criar (logo + paleta + tipografia + manual simples)";
+const ID_LOGO = "Só preciso do logo";
+
+const SECOES = [
+  {
+    id: "voce", titulo: "Você", arquivo: "01-voce.md", sub: "Quem está contratando.", campos: [
+      { id: "nome", label: "Seu nome", tipo: "texto", obrigatorio: true, auto: "name" },
+      { id: "whatsapp", label: "WhatsApp", tipo: "tel", obrigatorio: true, placeholder: "(11) 99999-9999", auto: "tel" },
+      { id: "email", label: "E-mail", tipo: "email", obrigatorio: true, auto: "email" },
+      { id: "empresa", label: "Empresa", tipo: "texto", auto: "organization" },
+      { id: "cnpj", label: "CNPJ", tipo: "texto", placeholder: "00.000.000/0000-00" },
+      { id: "site", label: "Site ou Instagram atual", tipo: "texto", placeholder: "@suamarca" },
+      { id: "prazo", label: "Prazo desejado", tipo: "select", opcoes: ["Urgente (7 dias)", "15 dias", "30 dias", "Sem pressa"] },
+      { id: "dominio", label: "Domínio (endereço do site)", tipo: "select", opcoes: ["Já tenho", "Quero registrar", "Ainda não sei"] },
+      { id: "dominio_qual", label: "Qual domínio?", tipo: "texto", placeholder: "suamarca.com.br", quando: { campo: "dominio", igual: "Já tenho" } },
+    ],
+  },
+  {
+    id: "identidade", titulo: "Identidade visual", arquivo: "02-identidade-visual.md", sub: "A cara da página: cores, fonte e logo.", campos: [
+      { id: "identidade", label: "Identidade visual", tipo: "select", opcoes: [ID_TENHO, ID_CRIAR, ID_LOGO], full: true },
+      { id: "paleta", label: "Paleta (até 5 cores)", tipo: "cores", full: true, quando: { campo: "identidade", igual: ID_TENHO } },
+      { id: "fonte", label: "Tipografia", tipo: "select", opcoes: FONTES, quando: { campo: "identidade", igual: ID_TENHO } },
+      { id: "fonte_outra", label: "Qual fonte? (uma por linha se forem várias)", tipo: "longo", quando: { campo: "fonte", igual: "Outra" } },
+      { id: "fontes_link", label: "Link das fontes", tipo: "url", hint: "Google Fonts, Drive, Dropbox…", placeholder: "https://", quando: { campo: "fonte", igual: "Outra" } },
+      { id: "fontes_arquivos", label: "Arquivos das fontes (PDF, ZIP, TTF/OTF)", tipo: "arquivos", pasta: "fontes", accept: ".pdf,.zip,.ttf,.otf,.woff,.woff2", full: true, quando: { campo: "fonte", igual: "Outra" } },
+      { id: "logo", label: "Logo (SVG ou PNG)", tipo: "arquivos", pasta: "logo", accept: ".svg,.png,.jpg,.jpeg,.pdf,.ai,.eps,image/*", full: true, quando: { campo: "identidade", igual: ID_TENHO } },
+      { id: "manual_marca", label: "Manual da marca (se tiver)", tipo: "arquivos", pasta: "manual-da-marca", accept: ".pdf,.zip,image/*", full: true, quando: { campo: "identidade", igual: ID_TENHO } },
+      { id: "marca_nome", label: "Nome da marca", tipo: "texto", quando: { campo: "identidade", naoEm: ["", ID_TENHO] } },
+      { id: "marca_adjetivos", label: "3 adjetivos da marca", tipo: "texto", placeholder: "moderna, urbana, confiável", quando: { campo: "identidade", naoEm: ["", ID_TENHO] } },
+      { id: "marca_referencias", label: "Referências (links)", tipo: "longo", quando: { campo: "identidade", naoEm: ["", ID_TENHO] } },
+      { id: "marca_concorrentes", label: "Concorrentes", tipo: "longo", quando: { campo: "identidade", naoEm: ["", ID_TENHO] } },
+      { id: "marca_evitar", label: "Cores que NÃO quer", tipo: "texto", quando: { campo: "identidade", naoEm: ["", ID_TENHO] } },
+      { id: "marca_inspiracoes", label: "Imagens de inspiração", tipo: "arquivos", pasta: "inspiracoes", accept: "image/*,.pdf", full: true, quando: { campo: "identidade", naoEm: ["", ID_TENHO] } },
+      { id: "publico", label: "Público-alvo", tipo: "texto", placeholder: "Quem compra de você?", full: true },
+      { id: "publico_chips", label: "Perfil do público", tipo: "multi", opcoes: ["Empresas (B2B)", "Consumidor final", "Profissionais liberais", "Infoprodutos", "Premium"], full: true },
+    ],
+  },
+  {
+    id: "lp", titulo: "Landing page", arquivo: "03-landing-page.md", sub: "A página de vendas: oferta, ação principal e seções.", campos: [
+      { id: "st_atual", label: "Já tem site hoje?", tipo: "select", opcoes: ["Não tenho", "Tenho e quero refazer", "Tenho e quero só uma página nova"] },
+      { id: "st_lp_objetivo", label: "Qual é a ação principal do visitante?", tipo: "select", opcoes: ["Comprar na hora (checkout)", "Chamar no WhatsApp", "Deixar nome e contato (captação)", "Agendar uma reunião", "Inscrever-se em evento ou aula"] },
+      { id: "st_lp_oferta", label: "O que a página vai vender ou oferecer?", tipo: "longo", placeholder: "Produto, curso, serviço, evento, material gratuito…", full: true },
+      { id: "st_lp_checkout", label: "Onde é feito o pagamento?", tipo: "select", opcoes: ["Hotmart", "Kiwify", "Eduzz", "Mercado Pago", "Stripe", "Link próprio", "Ainda não sei"], quando: { campo: "st_lp_objetivo", igual: "Comprar na hora (checkout)" } },
+      { id: "st_lp_checkout_link", label: "Link do checkout", tipo: "url", placeholder: "https://", quando: { campo: "st_lp_objetivo", igual: "Comprar na hora (checkout)" } },
+      { id: "st_lp_whatsapp", label: "Número do WhatsApp do botão", tipo: "tel", placeholder: "(11) 99999-9999", quando: { campo: "st_lp_objetivo", igual: "Chamar no WhatsApp" } },
+      { id: "st_lp_preco", label: "Preço da oferta", tipo: "texto", placeholder: "Ex.: R$ 497 ou 12x de R$ 49,70" },
+      { id: "st_lp_secoes", label: "O que a página deve mostrar?", tipo: "multi", opcoes: ["Vídeo de vendas", "Benefícios", "Depoimentos", "Antes e depois", "Bônus", "Garantia", "Perguntas frequentes", "Contagem regressiva", "Sobre o autor ou a empresa"], full: true },
+      { id: "st_lp_trafego", label: "De onde vem o público?", tipo: "multi", opcoes: ["Anúncios na Meta (Instagram e Facebook)", "Google Ads", "TikTok", "Orgânico e redes sociais", "Lista de e-mail ou WhatsApp"], full: true },
+      { id: "st_lp_obrigado", label: "Precisa de página de obrigado depois da conversão?", tipo: "simnao" },
+      { id: "st_lp_teste_ab", label: "Quer uma segunda versão para teste A/B?", tipo: "simnao" },
+      { id: "st_referencias", label: "Sites que você gosta (referências)", tipo: "longo", placeholder: "Cole os links e diga o que gosta em cada um", full: true },
+    ],
+  },
+  {
+    id: "conteudo", titulo: "Conteúdo e integrações", arquivo: "04-conteudo-e-integracoes.md", sub: "Textos, imagens e para onde vão os contatos.", campos: [
+      { id: "st_textos", label: "Quem escreve os textos?", tipo: "select", opcoes: ["Já tenho os textos", "Quero que vocês escrevam (copywriting)", "Tenho uma parte"] },
+      { id: "st_fotos", label: "Fotos e vídeos", tipo: "select", opcoes: ["Já tenho", "Usar banco de imagens", "Preciso que criem"] },
+      { id: "textos_conteudo", label: "Textos da página", tipo: "longo", hint: "Cole aqui os textos que já tem (título, benefícios, bônus, garantia, FAQ…).", full: true, quando: { campo: "st_textos", naoEm: ["", "Quero que vocês escrevam (copywriting)"] } },
+      { id: "textos_arquivos", label: "Arquivos de texto", tipo: "arquivos", pasta: "textos", accept: ".doc,.docx,.pdf,.txt,.md,.odt", full: true, quando: { campo: "st_textos", naoEm: ["", "Quero que vocês escrevam (copywriting)"] } },
+      { id: "midia_arquivos", label: "Fotos e vídeos", tipo: "arquivos", pasta: "fotos-e-videos", accept: "image/*,video/*,.zip", full: true, quando: { campo: "st_fotos", igual: "Já tenho" } },
+      { id: "depoimentos_arquivos", label: "Depoimentos (prints, vídeos)", tipo: "arquivos", pasta: "depoimentos", accept: "image/*,video/*,.pdf", full: true, quando: { campo: "st_lp_secoes", inclui: "Depoimentos" } },
+      { id: "st_formularios", label: "Para onde vão os contatos captados?", tipo: "multi", opcoes: ["E-mail", "WhatsApp", "Planilha", "CRM", "RD Station", "Mailchimp", "Outro"], full: true },
+      { id: "st_pixel", label: "Rastreamento e anúncios", tipo: "multi", opcoes: PIXEL, full: true },
+      { id: "st_pixel_ids", label: "IDs do pixel / tags", tipo: "longo", placeholder: "Ex.: Pixel Meta 1234567890; GTM-XXXXXXX", full: true, quando: { campo: "st_pixel", naoEm: ["", "Nenhum", "Não sei"] } },
+      { id: "st_hospedagem", label: "Hospedagem", tipo: "select", opcoes: ["Vocês hospedam", "Já tenho hospedagem", "Não sei"] },
+    ],
+  },
+  {
+    id: "final", titulo: "Para finalizar", arquivo: "05-finalizar.md", campos: [
+      { id: "comoConheceu", label: "Como nos conheceu?", tipo: "select", opcoes: ["Instagram", "Indicação", "Google", "WhatsApp", "Outro"] },
+      { id: "observacoes", label: "Observações gerais", tipo: "longo", full: true },
+      { id: "outros_arquivos", label: "Outros anexos", tipo: "arquivos", pasta: "outros", full: true },
+    ],
+  },
+];
+
+const CAMPOS = SECOES.flatMap((s) => s.campos);
+const COM_OUTRO = (c) => (c.tipo === "select" || c.tipo === "multi") && c.opcoes.includes("Outro");
+
+/* ───────── IndexedDB ───────── */
+
+const DB_NOME = "briefing-lp";
+let db;
+function abrirDb() {
+  return new Promise((ok, falha) => {
+    const req = indexedDB.open(DB_NOME, 1);
+    req.onupgradeneeded = () => {
+      const d = req.result;
+      d.createObjectStore("briefings", { keyPath: "id" });
+      d.createObjectStore("arquivos", { keyPath: "id" }).createIndex("briefingId", "briefingId");
+    };
+    req.onsuccess = () => ok(req.result);
+    req.onerror = () => falha(req.error);
+  });
+}
+const tx = (store, modo, fn) => new Promise((ok, falha) => {
+  const t = db.transaction(store, modo);
+  const res = fn(t.objectStore(store));
+  t.oncomplete = () => ok(res && "result" in res ? res.result : res);
+  t.onerror = () => falha(t.error);
+  t.onabort = () => falha(t.error);
+});
+const dbGet = (store, id) => tx(store, "readonly", (s) => s.get(id));
+const dbPut = (store, v) => tx(store, "readwrite", (s) => s.put(v));
+const dbDel = (store, id) => tx(store, "readwrite", (s) => s.delete(id));
+const dbTodos = (store) => tx(store, "readonly", (s) => s.getAll());
+const arquivosDe = (briefingId) => tx("arquivos", "readonly", (s) => s.index("briefingId").getAll(briefingId));
+
+/* ───────── Estado ───────── */
+
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+let atual = null; // { id, criado, atualizado, dados }
+let arquivos = []; // metadados + blob do briefing atual
+
+function novoBriefing() {
+  const agora = new Date().toISOString();
+  return { id: uid(), criado: agora, atualizado: agora, dados: { paleta: ["#0E9F5E"], fonte: "Poppins" } };
+}
+
+let timer;
+function salvar() {
+  atual.atualizado = new Date().toISOString();
+  clearTimeout(timer);
+  status("Salvando…");
+  timer = setTimeout(async () => {
+    await dbPut("briefings", atual);
+    try { localStorage.setItem("briefing-lp:ultimo", atual.id); } catch {}
+    status("Salvo " + new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }));
+  }, 300);
+}
+const status = (t) => (document.getElementById("status").textContent = t);
+
+function condOk(c) {
+  if (!c) return true;
+  const v = atual.dados[c.campo];
+  const lista = Array.isArray(v) ? v : v ? [v] : [];
+  if (c.igual !== undefined) return lista.includes(c.igual);
+  if (c.inclui !== undefined) return lista.includes(c.inclui);
+  if (c.naoEm) return lista.some((x) => !c.naoEm.includes(x));
+  return true;
+}
+/** Visível só se a condição vale e o campo da condição também está visível (encadeado). */
+function visivel(c) {
+  if (!c.quando) return true;
+  const pai = CAMPOS.find((x) => x.id === c.quando.campo);
+  return condOk(c.quando) && (!pai || visivel(pai));
+}
+
+/* ───────── Formulário ───────── */
+
+const el = (tag, attrs = {}, ...filhos) => {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") e.className = v;
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else if (v !== undefined && v !== false) e.setAttribute(k, v === true ? "" : v);
+  }
+  for (const f of filhos.flat()) if (f != null) e.append(f);
+  return e;
+};
+
+const mascaraTel = (v) => {
+  const d = v.replace(/\D/g, "").slice(0, 11);
+  if (d.length <= 2) return d ? `(${d}` : "";
+  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+};
+const mascaraCnpj = (v) => v.replace(/\D/g, "").slice(0, 14)
+  .replace(/^(\d{2})(\d)/, "$1.$2").replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3").replace(/\.(\d{3})(\d)/, ".$1/$2").replace(/(\d{4})(\d)/, "$1-$2");
+
+function set(id, v) {
+  atual.dados[id] = v;
+  salvar();
+  atualizarVisibilidade();
+  if (id === "nome" || id === "empresa") atualizarTitulo();
+}
+
+function controle(c) {
+  const d = atual.dados;
+  const nomeId = "f_" + c.id;
+  switch (c.tipo) {
+    case "texto": case "email": case "tel": case "url": case "numero": {
+      const tipo = { texto: "text", numero: "number" }[c.tipo] || c.tipo;
+      return el("input", {
+        id: nomeId, type: tipo, value: d[c.id] || "", placeholder: c.placeholder, autocomplete: c.auto, required: c.obrigatorio,
+        inputmode: c.tipo === "tel" || c.id === "cnpj" ? "numeric" : undefined,
+        oninput: (e) => {
+          if (c.tipo === "tel") e.target.value = mascaraTel(e.target.value);
+          if (c.id === "cnpj") e.target.value = mascaraCnpj(e.target.value);
+          set(c.id, e.target.value);
+        },
+      });
+    }
+    case "longo":
+      return el("textarea", { id: nomeId, placeholder: c.placeholder, oninput: (e) => set(c.id, e.target.value) }, d[c.id] || "");
+    case "select": {
+      const s = el("select", { id: nomeId, onchange: (e) => set(c.id, e.target.value) },
+        el("option", { value: "" }, "Selecione…"),
+        c.opcoes.map((o) => el("option", { value: o, selected: d[c.id] === o }, o)));
+      return s;
+    }
+    case "simnao":
+      return el("div", { class: "chips", role: "radiogroup" }, ["Sim", "Não"].map((o) =>
+        el("label", { class: "chip" }, el("input", { type: "radio", name: nomeId, value: o, checked: d[c.id] === o, onchange: () => set(c.id, o) }), o)));
+    case "multi":
+      return el("div", { class: "chips" }, c.opcoes.map((o) =>
+        el("label", { class: "chip" }, el("input", {
+          type: "checkbox", value: o, checked: (d[c.id] || []).includes(o),
+          onchange: (e) => {
+            const atualL = (atual.dados[c.id] || []).filter((x) => x !== o);
+            set(c.id, e.target.checked ? [...atualL, o] : atualL);
+          },
+        }), o)));
+    case "cores":
+      return el("div", { class: "cores", id: nomeId });
+    case "arquivos":
+      return el("div", { class: "arquivos", id: nomeId });
+  }
+}
+
+function renderCores(c) {
+  const box = document.getElementById("f_" + c.id);
+  box.replaceChildren();
+  const lista = atual.dados[c.id] || [];
+  lista.forEach((cor, i) => {
+    box.append(el("span", { style: "display:flex;align-items:center;gap:4px" },
+      el("input", { type: "color", value: cor, "aria-label": `Cor ${i + 1}`, oninput: (e) => { lista[i] = e.target.value; set(c.id, [...lista]); } }),
+      lista.length > 1 ? el("button", { type: "button", class: "link", "aria-label": `Remover cor ${i + 1}`, onclick: () => { set(c.id, lista.filter((_, j) => j !== i)); renderCores(c); } }, "×") : null));
+  });
+  if (lista.length < 5) box.append(el("button", { type: "button", onclick: () => { set(c.id, [...lista, "#111111"]); renderCores(c); } }, "+ cor"));
+}
+
+const tamanho = (b) => (b < 1024 * 1024 ? `${Math.max(1, Math.round(b / 1024))} KB` : `${(b / 1024 / 1024).toFixed(1)} MB`);
+
+function renderArquivos(c) {
+  const box = document.getElementById("f_" + c.id);
+  const meus = arquivos.filter((a) => a.campo === c.id);
+  const input = el("input", { type: "file", multiple: true, accept: c.accept, onchange: (e) => { adicionarArquivos(c, e.target.files); e.target.value = ""; } });
+  const drop = el("label", { class: "drop" }, "Clique ou arraste arquivos aqui", input);
+  drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("over"); });
+  drop.addEventListener("dragleave", () => drop.classList.remove("over"));
+  drop.addEventListener("drop", (e) => { e.preventDefault(); drop.classList.remove("over"); adicionarArquivos(c, e.dataTransfer.files); });
+  box.replaceChildren(drop, el("ul", {}, meus.map((a) => el("li", {},
+    el("span", { title: a.nome }, `${a.nome} · ${tamanho(a.tamanho)}`),
+    el("button", { type: "button", class: "link danger", onclick: async () => { await dbDel("arquivos", a.id); arquivos = arquivos.filter((x) => x.id !== a.id); renderArquivos(c); salvar(); } }, "remover")))));
+}
+
+async function adicionarArquivos(c, files) {
+  for (const f of files) {
+    const a = { id: uid(), briefingId: atual.id, campo: c.id, nome: f.name, tipo: f.type, tamanho: f.size, blob: f };
+    try {
+      await dbPut("arquivos", a);
+      arquivos.push(a);
+    } catch (e) {
+      alert(`Não foi possível salvar "${f.name}" no navegador (espaço insuficiente?).`);
+    }
+  }
+  renderArquivos(c);
+  salvar();
+}
+
+function renderForm() {
+  const form = document.getElementById("form");
+  const nav = document.getElementById("nav");
+  form.replaceChildren();
+  nav.replaceChildren();
+  for (const s of SECOES) {
+    nav.append(el("a", { href: "#s_" + s.id }, s.titulo));
+    const grid = el("div", { class: "grid" });
+    for (const c of s.campos) {
+      const rot = c.tipo === "multi" || c.tipo === "simnao" || c.tipo === "cores" || c.tipo === "arquivos"
+        ? el("span", { class: "rot" }, c.label, c.obrigatorio ? el("span", { class: "req" }, " *") : null)
+        : el("label", { class: "rot", for: "f_" + c.id }, c.label, c.obrigatorio ? el("span", { class: "req" }, " *") : null);
+      const wrap = el("div", { class: "campo" + (c.full || c.tipo === "longo" ? " full" : ""), "data-campo": c.id },
+        rot, controle(c), c.hint ? el("div", { class: "hint" }, c.hint) : null);
+      if (COM_OUTRO(c)) {
+        wrap.append(el("div", { "data-outro": c.id, style: "margin-top:8px" },
+          el("input", { type: "text", placeholder: "Qual?", "aria-label": `${c.label}: outro`, value: atual.dados[c.id + "_outro"] || "", oninput: (e) => set(c.id + "_outro", e.target.value) })));
+      }
+      grid.append(wrap);
+    }
+    form.append(el("section", { id: "s_" + s.id }, el("h2", {}, s.titulo), s.sub ? el("p", { class: "sub" }, s.sub) : null, grid));
+  }
+  for (const c of CAMPOS) {
+    if (c.tipo === "cores") renderCores(c);
+    if (c.tipo === "arquivos") renderArquivos(c);
+  }
+  atualizarVisibilidade();
+  atualizarTitulo();
+}
+
+function atualizarVisibilidade() {
+  for (const c of CAMPOS) {
+    const w = document.querySelector(`[data-campo="${c.id}"]`);
+    if (w) w.hidden = !visivel(c);
+    const o = document.querySelector(`[data-outro="${c.id}"]`);
+    if (o) { const v = atual.dados[c.id]; o.hidden = !(Array.isArray(v) ? v.includes("Outro") : v === "Outro"); }
+  }
+}
+
+function atualizarTitulo() {
+  const n = atual.dados.empresa || atual.dados.nome;
+  document.getElementById("titulo").textContent = n ? `Briefing LP · ${n}` : "Briefing da landing page";
+}
+
+/* ───────── Markdown + ZIP ───────── */
+
+const slug = (t) => (t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9.]+/g, "-").replace(/^-+|-+$/g, "") || "arquivo";
+
+function resposta(c) {
+  const v = atual.dados[c.id];
+  const outro = atual.dados[c.id + "_outro"];
+  const comOutro = (i) => (i === "Outro" && outro ? `Outro: ${outro}` : i);
+  if (c.tipo === "multi") return (v || []).map((i) => `- ${comOutro(i)}`).join("\n");
+  if (c.tipo === "cores") return (v || []).map((x) => `- \`${x.toUpperCase()}\``).join("\n");
+  return v ? comOutro(String(v)) : "";
+}
+
+/** Caminho de cada anexo dentro do ZIP, sem nomes repetidos na mesma pasta. */
+function caminhosDosAnexos() {
+  const usados = new Set();
+  const mapa = new Map();
+  for (const c of CAMPOS.filter((x) => x.tipo === "arquivos")) {
+    for (const a of arquivos.filter((x) => x.campo === c.id)) {
+      const ponto = a.nome.lastIndexOf(".");
+      const base = slug(ponto > 0 ? a.nome.slice(0, ponto) : a.nome);
+      const ext = ponto > 0 ? a.nome.slice(ponto).toLowerCase() : "";
+      let p = `anexos/${c.pasta}/${base}${ext}`;
+      for (let i = 2; usados.has(p); i++) p = `anexos/${c.pasta}/${base}-${i}${ext}`;
+      usados.add(p);
+      mapa.set(a.id, p);
+    }
+  }
+  return mapa;
+}
+
+function mdSecao(s, caminhos, nivel = 1) {
+  const h = "#".repeat(nivel);
+  const linhas = [`${h} ${s.titulo}`, ""];
+  for (const c of s.campos.filter(visivel)) {
+    let r;
+    if (c.tipo === "arquivos") {
+      r = arquivos.filter((a) => a.campo === c.id).map((a) => `- [${a.nome}](${encodeURI(caminhos.get(a.id))})`).join("\n");
+    } else r = resposta(c);
+    if (!r) continue;
+    linhas.push(`${h}# ${c.label}`, "", r, "");
+  }
+  if (linhas.length === 2) linhas.push("_Sem respostas nesta seção._", "");
+  return linhas.join("\n");
+}
+
+function validar() {
+  const faltam = CAMPOS.filter((c) => c.obrigatorio && !String(atual.dados[c.id] || "").trim());
+  const email = atual.dados.email || "";
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) faltam.push({ label: "E-mail válido" });
+  return faltam;
+}
+
+async function gerarZip() {
+  const faltam = validar();
+  if (faltam.length && !confirm(`Faltam campos obrigatórios: ${faltam.map((f) => f.label).join(", ")}.\n\nGerar o ZIP mesmo assim?`)) return;
+  status("Gerando ZIP…");
+  await dbPut("briefings", atual);
+  const zip = new JSZip();
+  const caminhos = caminhosDosAnexos();
+  const nome = atual.dados.empresa || atual.dados.nome || "cliente";
+  const data = new Date().toLocaleString("pt-BR");
+
+  const indice = [
+    `# Briefing da landing page · ${nome}`, "",
+    `Gerado em ${data}.`, "",
+    "## Arquivos", "",
+    ...SECOES.map((s) => `- [${s.titulo}](${s.arquivo})`),
+    arquivos.length ? `- Anexos: ${arquivos.length} arquivo(s) na pasta \`anexos/\`` : "- Sem anexos",
+    "", "---", "",
+    ...SECOES.map((s) => mdSecao(s, caminhos, 2)),
+  ].join("\n");
+  zip.file("README.md", indice);
+  for (const s of SECOES) zip.file(s.arquivo, mdSecao(s, caminhos));
+  for (const a of arquivos) zip.file(caminhos.get(a.id), a.blob);
+  // Para reabrir e editar em outro navegador: "Meus briefings" → Importar ZIP.
+  zip.file("briefing.json", JSON.stringify({
+    formato: "briefing-lp", versao: 1, ...atual,
+    arquivos: arquivos.map((a) => ({ campo: a.campo, nome: a.nome, tipo: a.tipo, caminho: caminhos.get(a.id) })),
+  }, null, 2));
+
+  const blob = await zip.generateAsync({ type: "blob" }, (m) => status(`Gerando ZIP… ${Math.round(m.percent)}%`));
+  const url = URL.createObjectURL(blob);
+  const a = el("a", { href: url, download: `briefing-lp-${slug(nome)}-${new Date().toISOString().slice(0, 10)}.zip` });
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  status("ZIP gerado");
+}
+
+async function importarZip(file) {
+  try {
+    const zip = await JSZip.loadAsync(file);
+    const j = zip.file("briefing.json");
+    if (!j) throw new Error("O ZIP não tem briefing.json.");
+    const b = JSON.parse(await j.async("string"));
+    if (b.formato !== "briefing-lp") throw new Error("Este ZIP não é de um briefing de LP.");
+    const novo = { id: uid(), criado: b.criado || new Date().toISOString(), atualizado: new Date().toISOString(), dados: b.dados || {} };
+    await dbPut("briefings", novo);
+    for (const a of b.arquivos || []) {
+      const f = zip.file(a.caminho);
+      if (!f) continue;
+      const blob = new Blob([await f.async("arraybuffer")], { type: a.tipo || "" });
+      await dbPut("arquivos", { id: uid(), briefingId: novo.id, campo: a.campo, nome: a.nome, tipo: a.tipo, tamanho: blob.size, blob });
+    }
+    await abrir(novo.id);
+    document.getElementById("dlg").close();
+  } catch (e) {
+    alert("Não foi possível importar: " + e.message);
+  }
+}
+
+/* ───────── Lista de briefings ───────── */
+
+async function abrir(id) {
+  atual = (id && (await dbGet("briefings", id))) || novoBriefing();
+  atual.dados = atual.dados || {};
+  arquivos = await arquivosDe(atual.id);
+  await dbPut("briefings", atual);
+  try { localStorage.setItem("briefing-lp:ultimo", atual.id); } catch {}
+  renderForm();
+  status("");
+  scrollTo(0, 0);
+}
+
+async function renderLista() {
+  const todos = (await dbTodos("briefings")).sort((a, b) => b.atualizado.localeCompare(a.atualizado));
+  const ul = document.getElementById("lista");
+  ul.replaceChildren(...todos.map((b) => el("li", {},
+    el("b", {}, (b.dados.empresa || b.dados.nome || "Sem nome") + (b.id === atual.id ? " (aberto)" : "")),
+    el("span", { class: "status" }, new Date(b.atualizado).toLocaleString("pt-BR")),
+    el("button", { type: "button", onclick: async () => { await abrir(b.id); document.getElementById("dlg").close(); } }, "Abrir"),
+    el("button", { type: "button", onclick: () => duplicar(b) }, "Duplicar"),
+    el("button", { type: "button", class: "danger", onclick: () => excluir(b) }, "Excluir"))));
+  if (!todos.length) ul.append(el("li", {}, "Nenhum briefing salvo."));
+}
+
+async function duplicar(b) {
+  const novo = { ...structuredClone(b), id: uid(), atualizado: new Date().toISOString() };
+  novo.dados.empresa = (novo.dados.empresa || novo.dados.nome || "Briefing") + " (cópia)";
+  await dbPut("briefings", novo);
+  for (const a of await arquivosDe(b.id)) await dbPut("arquivos", { ...a, id: uid(), briefingId: novo.id });
+  renderLista();
+}
+
+async function excluir(b) {
+  if (!confirm(`Excluir "${b.dados.empresa || b.dados.nome || "Sem nome"}" e todos os anexos dele deste navegador?`)) return;
+  for (const a of await arquivosDe(b.id)) await dbDel("arquivos", a.id);
+  await dbDel("briefings", b.id);
+  if (b.id === atual.id) {
+    const resto = (await dbTodos("briefings")).sort((x, y) => y.atualizado.localeCompare(x.atualizado));
+    await abrir(resto[0]?.id);
+  }
+  renderLista();
+}
+
+/* ───────── Início ───────── */
+
+(async () => {
+  db = await abrirDb();
+  navigator.storage?.persist?.(); // pede ao navegador para não apagar os anexos quando faltar espaço
+  let ultimo = null;
+  try { ultimo = localStorage.getItem("briefing-lp:ultimo"); } catch {}
+  if (!ultimo) ultimo = (await dbTodos("briefings")).sort((a, b) => b.atualizado.localeCompare(a.atualizado))[0]?.id;
+  await abrir(ultimo);
+
+  const dlg = document.getElementById("dlg");
+  document.getElementById("btnZip").onclick = gerarZip;
+  document.getElementById("btnZip2").onclick = gerarZip;
+  document.getElementById("btnLista").onclick = async () => { await renderLista(); dlg.showModal(); };
+  document.getElementById("btnFechar").onclick = () => dlg.close();
+  document.getElementById("btnNovo").onclick = async () => { await abrir(null); dlg.close(); };
+  document.getElementById("importar").onchange = (e) => { if (e.target.files[0]) importarZip(e.target.files[0]); e.target.value = ""; };
+})().catch((e) => alert("Este navegador não permitiu salvar localmente (IndexedDB): " + e.message));
+</script>
+</body>
+</html>
